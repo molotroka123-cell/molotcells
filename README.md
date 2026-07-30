@@ -1,2 +1,43 @@
-# molotcells
-Project Evolution — vertical slice: civilization sandbox from Stone Age to the Future. Engine-agnostic simulation core + temporary browser client. Final target: Unreal Engine 5.
+# PROJECT EVOLUTION — Vertical Slice
+
+Sandbox-стратегия про цивилизацию: от каменного века до эпохи будущего.
+Браузерный клиент — **временный**; ядро симуляции engine-agnostic, финальная цель — Unreal Engine 5.
+
+## Архитектура
+
+```
+src/
+  core/          ← ЯДРО: не импортирует DOM/Canvas, переносится в UE5 без изменения логики
+    rng.js         детерминированный ГПСЧ (mulberry32) + шум для генерации мира
+    world.js       процедурная генерация острова, движение, поиск тайлов
+    data.js        ВЕСЬ контент data-driven: технологии, здания, эпохи, погода, события, цели
+    simulation.js  жители, экономика, строительство, исследования, события, консоль, сейвы
+  render/
+    renderer.js    канвас-рендер: читает симуляцию, ничего в ней не меняет
+  ui/
+    hud.js         DOM-интерфейс: панели, консоль, тултипы
+  save/
+    saveSystem.js  интерфейс ISaveSystem (BrowserSave → DesktopSave → SteamSave)
+  main.js          склейка слоёв, главный цикл
+```
+
+Правило зависимостей: `render/ui/save` зависят от `core`, `core` не зависит ни от чего внешнего.
+
+## Запуск
+
+Открыть `index.html` через любой статический сервер (ES-модули не работают с file://):
+
+```bash
+python3 -m http.server 8000
+# → http://localhost:8000
+```
+
+## Управление
+
+ЛКМ — выбрать здание в панели → клик по карте для постройки · перетаскивание/стрелки/WASD — камера · колесо — зум · пробел — пауза · Esc — отмена.
+
+Консоль разработчика (внизу): `/help` — все команды (`/give`, `/spawn`, `/weather`, `/age`, `/simulate`, `/godmode`, `/fastresearch`, `/plague`, `/meteor`…)
+
+## Проверено автотестами ядра (headless)
+
+детерминизм генерации мира · выживание племени · все 15 технологий и 9 эпох · консольные команды · сейв/лоад round-trip · 200 дней стабильности.
